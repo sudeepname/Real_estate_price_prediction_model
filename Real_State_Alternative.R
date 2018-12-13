@@ -1,17 +1,24 @@
-setwd('E:/documents/Real Estate')
-house_ing = read.csv('housing_train.csv', stringsAsFactors = FALSE)
+#Data acquation step
+
+setwd('E:/documents/R Course/Real Estate')   #setting derictory path
+
+house_ing = read.csv('housing_train.csv', stringsAsFactors = FALSE)  # Uploading the data set on R 
+
 library(dplyr)
-glimpse(house_ing)
-house_ing = house_ing %>%
-  select(-YearBuilt,-BuildingArea,-SellerG)
-house_ing = filter(house_ing,!is.na(house_ing$Bedroom2) & !is.na(house_ing$Bathroom))# rows who don't have any any re data 
+
+glimpse(house_ing) #getting the structure of the data frame 
+
+#######################################################################
+#Data Prepration begins
+
+#Imputing the NA values with the mean of their respective column
 house_ing[is.na(house_ing$Landsize), "Landsize"] <- mean(house_ing$Landsize,na.rm = T)
-
-
-
 round(tapply(house_ing$Price,house_ing$Postcode,mean), 0)
+
+#again having a look on the data
 glimpse(house_ing)
 
+####### Creating the dummy variable for the categorical columns #######
 house_ing=house_ing %>%
   mutate(Type_h=as.numeric(Type=="h"),
          Type_t=as.numeric(Type=="t")
@@ -78,19 +85,21 @@ house_ing = house_ing %>%
          surb_12= as.numeric(Suburb %in% c("Hawthorn East","Brighton East","Armadale","Ashburton")),
          surb_13= as.numeric(Suburb %in% c("Hampton","Kew East","Camberwell")),
          surb_14= as.numeric(Suburb %in% c("Glen Iris","Toorak","Albert Park","Balwyn North","Kew","Middle Park")),
-         surb_15= as.numeric(Suburb %in% c("Mont Albert","Malvern","Brighton","Eaglemont"))
-         # surb_16= as.numeric(Suburb %in% c("Princes Hill","Balwyn","Canterbury"))
+         surb_15= as.numeric(Suburb %in% c("Mont Albert","Malvern","Brighton","Eaglemont")),
+         surb_16= as.numeric(Suburb %in% c("Princes Hill","Balwyn","Canterbury"))
         ) %>% 
   select(-Suburb)
-
+###############################################################################
+######## Dividing the data set into traning and testing #########
 set.seed(1)
 s=sample(1:nrow(house_ing),0.75*nrow(house_ing))
 houseing_train=house_ing[s,] # Trainset: 75% of rows
 houseing_test=house_ing[-s,] # Testset: 25% of rows
 
+###Fitting the data for our dependent variable####
+# dependent variable is the one on which we do our prediction where as independent variables are the variables that becomes the deciding factor in the prediction of the dependent variable##
 
-
-fit=lm(Price ~ ., data=houseing_train)
+fit=lm(Price ~ ., data=houseing_train)## . stands for "Include ALL VARIABLES "
 summary(fit)
 
 house_ing = house_ing %>% 
@@ -101,80 +110,34 @@ houseing_train = houseing_train %>%
 
 
 library(car)
-tes_t=vif(fit)
+tes_t=vif(fit)# checking vif
 sort(tes_t,decreasing = T)
 
-fit = lm(Price ~. - PC_3, data = house_ing)
+fit = lm(Price ~. - c_area_1, data = house_ing)
 
-fit=lm(Price ~ . -surb_15, data=houseing_train)
+fit=lm(Price ~ . -c_area_1 -PC_3, data=houseing_train)
 summary(fit)
 
-fit=lm(Price ~ . -surb_15 - c_area_9, data=houseing_train)
+fit=lm(Price ~ . -PC_3 - c_area_1 -Meth_2, data=houseing_train)
 summary(fit)
 tes_t=vif(fit)
 sort(tes_t,decreasing = T)
 
-fit=lm(Price ~ . -surb_15 - c_area_9 - Car - surb_13, data=houseing_train)
-tes_t=vif(fit)
-sort(tes_t,decreasing = T)
-summary(fit)
-
-fit=lm(Price ~. - surb_15 - c_area_9 - Car - surb_13 - PC_3,data = houseing_train)
-tes_t=vif(fit)
-sort(tes_t,decreasing = T)
-
-fit=lm(Price ~. - surb_15 - c_area_9 - Car - surb_13 - PC_3 - Meth_2,data = houseing_train)
-tes_t=vif(fit)
-sort(tes_t,decreasing = T)
-
-fit=lm(Price ~. - surb_15 - c_area_9 - Car - surb_13 - PC_3 - Meth_2,data = houseing_train)
-tes_t=vif(fit)
-sort(tes_t,decreasing = T)
-
-fit=lm(Price ~. - surb_15 - c_area_9 - Car - surb_13 - PC_3 - Meth_2 -c_area_2,data = houseing_train)
-tes_t=vif(fit)
-sort(tes_t,decreasing = T)
-
-fit=lm(Price ~. - surb_15 - c_area_9 - Car - surb_13 - PC_3 - Meth_2 -c_area_2 -surb_3,data = houseing_train)
-tes_t=vif(fit)
-sort(tes_t,decreasing = T)
-
-fit=lm(Price ~. - surb_15 - c_area_9 - Car - surb_13 - PC_3 - Meth_2 -c_area_2 -surb_3 -Rooms,data = houseing_train)
-tes_t=vif(fit)
-sort(tes_t,decreasing = T)
-
-fit=lm(Price ~. - surb_15 - c_area_9 - Car - surb_13 - PC_3 - Meth_2 -c_area_2 -surb_3 -Rooms -PC_11,data = houseing_train)
+fit=lm(Price ~ . -PC_3 - c_area_1 -Meth_2 -surb_3, data=houseing_train)
 tes_t=vif(fit)
 sort(tes_t,decreasing = T)
 summary(fit)
 
-fit=lm(Price ~. - surb_15 - c_area_9 - Car - surb_13 - PC_3 - Meth_2 -c_area_2 -surb_3 - c_area_6,data = houseing_train)
+fit=lm(Price ~ . -PC_3 - c_area_1 -Meth_2 -surb_3 - PC_11, data=houseing_train)
 tes_t=vif(fit)
 sort(tes_t,decreasing = T)
 
-fit=lm(Price ~. - surb_15 - c_area_9 - Car - surb_13 - PC_3 - Meth_2 -c_area_2 -surb_3 - c_area_3,data = houseing_train)
+fit=lm(Price ~ . -PC_3 - c_area_1 -Meth_2 -surb_3 - PC_11 - Rooms, data=houseing_train)
 tes_t=vif(fit)
 sort(tes_t,decreasing = T)
 
-fit=lm(Price ~. - surb_15 - c_area_9 - Car - surb_13 - PC_3 - Meth_2 -c_area_2 -surb_3 - c_area_3 - PC_10,data = houseing_train)
-tes_t=vif(fit)
-sort(tes_t,decreasing = T)
 
-fit=lm(Price ~. - surb_15 - c_area_9 - Car - surb_13 - PC_3 - Meth_2 -c_area_2 -surb_3 - c_area_3 - PC_12,data = houseing_train)
-tes_t=vif(fit)
-sort(tes_t,decreasing = T)
-  
-fit=lm(Price ~. - surb_15 - c_area_9 - Car - surb_13 - PC_3 - Meth_2 -c_area_2 -surb_3 - c_area_3 - PC_12 - PC_13,data = houseing_train)
-tes_t=vif(fit)
-sort(tes_t,decreasing = T)
-
-step(fit, data=houseing_train, direction="both")
-
-fit =lm(Price ~. -Rooms - Distance - Bedroom2 - Bathroom - Landsize - Type_h - Type_t - c_area_1 - c_area_6 - c_area_5 - c_area_7 - c_area_8 - PC_2 - PC_4 - PC_7 - PC_9 - PC_10 - PC_11 - PC_14 - PC_15 - Meth_1 - Meth_3 - Meth_4 - surb_2 - surb_4 - surb_5 - surb_6 - surb_7 - surb_8 - surb_9, data = houseing_train)
-summary(fit)
-vif(fit)
-
-fit =lm(Price ~ Rooms + Distance + Bedroom2 + Bathroom + Landsize + Type_h + Type_t + c_area_1 + c_area_6 + c_area_5 + c_area_7 + c_area_8 + PC_2 + PC_4 + PC_7 + PC_9 + PC_10 + PC_11 + PC_14 + PC_15 + Meth_1 + Meth_3 + Meth_4 + surb_2 + surb_4 + surb_5 + surb_6 + surb_7 + surb_8 + surb_9, data = houseing_train)
+###############################################################3
 
 # Checking performance using test set
 ir_predict=predict(fit,newdata=houseing_test)
@@ -190,13 +153,14 @@ plot(d$Actual,d$Predicted) # Looks okay
 # If the Actual is 30, your predicted should also be reasonably close to 30.
 
 
+
 # # Mean Absolute Percentage Error (MAPE)
 MAPE_test = mean(abs(d$Error/d$Actual),na.rm = T)*100
 MAPE_test # Lower the better
 
-## Root Mean Square Error (RMSE)
-# RMSE_test=sqrt(mean(d$Error^2))
-# RMSE_test # Lower the better
+# Root Mean Square Error (RMSE)
+RMSE_test=sqrt(mean(d$Error^2))
+RMSE_test # Lower the better
 
 
 ############################################################################################
@@ -207,8 +171,16 @@ MAPE_test # Lower the better
 house_ingt = read.csv('housing_test.csv', stringsAsFactors = FALSE)
 house_ingt = house_ingt %>%
   select(-YearBuilt,-BuildingArea,-SellerG)
-house_ingt = filter(house_ingt,!is.na(house_ingt$Bedroom2) & !is.na(house_ingt$Bathroom))# rows who don't have any any re data 
+#house_ingt = filter(house_ingt,!is.na(house_ingt$Bedroom2) & !is.na(house_ingt$Bathroom))# rows who don't have any any re data 
 house_ingt[is.na(house_ingt$Landsize), "Landsize"] <- mean(house_ingt$Landsize,na.rm = T)
+house_ingt[is.na(house_ingt$Bedroom2), "Bedroom2"] <- mean(house_ingt$Bedroom2,na.rm = T)
+house_ingt[is.na(house_ingt$Bathroom), "Bathroom"] <- mean(house_ingt$Bathroom,na.rm = T)
+house_ingt[is.na(house_ingt$Car), "Car"] <- mean(house_ing$Car,na.rm = T)
+#removing out lier in the Landsize
+boxplot(house_ingt$Landsize)$out
+house_ingt[house_ingt$Landsize > 20000 , "Landsize"] <- mean(house_ingt$Landsize)
+boxplot(house_ingt$Landsize)$out
+
 data = house_ingt
 
 glimpse(house_ingt)
@@ -279,14 +251,16 @@ house_ingt = house_ingt %>%
          surb_13= as.numeric(Suburb %in% c("Hampton","Kew East","Camberwell")),
          surb_14= as.numeric(Suburb %in% c("Glen Iris","Toorak","Albert Park","Balwyn North","Kew","Middle Park")),
          surb_15= as.numeric(Suburb %in% c("Mont Albert","Malvern","Brighton","Eaglemont"))
-         # surb_16= as.numeric(Suburb %in% c("Princes Hill","Balwyn","Canterbury"))
   ) %>% 
   select(-Suburb)
 
-
+mn = mean(d$Predicted)
 
 ir_predict = predict(fit,newdata=house_ingt) 
 
 data_set = data.frame(data, predicted = ir_predict)
 View(data_set)
+
+data_set = data_set %>% 
+  mutate(predicted = ifelse(is.na(predicted)== T,mn, predicted ))
 
